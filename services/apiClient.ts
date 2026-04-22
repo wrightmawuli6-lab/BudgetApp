@@ -1,7 +1,15 @@
 import axios from "axios";
 import { logout } from "../auth";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:4000/api";
+function getRequiredClientEnv(name: "VITE_API_BASE_URL") {
+  const value = import.meta.env[name];
+  if (!value) {
+    throw new Error(`${name} is required. Set it in your frontend environment.`);
+  }
+  return value;
+}
+
+const API_BASE_URL = getRequiredClientEnv("VITE_API_BASE_URL");
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
