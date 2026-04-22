@@ -8,6 +8,10 @@ const backendEnvPath = path.resolve(__dirname, "../../.env");
 
 dotenv.config({ path: backendEnvPath });
 
+function normalizeOrigin(origin) {
+  return origin?.trim().replace(/^<|>$/g, "").replace(/\/+$/, "") || "";
+}
+
 const required = ["DATABASE_URL", "JWT_SECRET"];
 
 for (const key of required) {
@@ -26,7 +30,7 @@ export const env = {
   adminJwtExpiresIn: process.env.ADMIN_JWT_EXPIRES_IN || "12h",
   clientOrigins: (process.env.CLIENT_ORIGIN || "http://localhost:3000")
     .split(",")
-    .map((origin) => origin.trim())
+    .map((origin) => normalizeOrigin(origin))
     .filter(Boolean),
   openAiApiKey: process.env.OPENAI_API_KEY || "",
   openAiModel: process.env.OPENAI_MODEL || "gpt-4.1-mini",

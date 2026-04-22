@@ -26,6 +26,8 @@ export const app = express();
 
 app.use(helmet());
 
+const normalizeOrigin = (origin) => origin?.trim().replace(/\/+$/, "") || "";
+
 const corsOriginHandler = (origin, callback) => {
   if (!origin) {
     return callback(null, true);
@@ -35,19 +37,24 @@ const corsOriginHandler = (origin, callback) => {
     return callback(null, true);
   }
 
-  if (env.clientOrigins.includes(origin)) {
+  const normalizedOrigin = normalizeOrigin(origin);
+
+  if (env.clientOrigins.includes(normalizedOrigin)) {
     return callback(null, true);
   }
 
-  return callback(new Error("CORS origin not allowed"));
+  return callback(new Error(`CORS origin not allowed: ${normalizedOrigin}`));
 };
 
-app.use(
-  cors({
-    origin: corsOriginHandler,
-    credentials: false
-  })
-);
+const corsOptions = {
+  origin: corsOriginHandler,
+  credentials: false,
+  methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
 app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
 
