@@ -33,17 +33,22 @@ const corsOriginHandler = (origin, callback) => {
     return callback(null, true);
   }
 
+  const normalizedOrigin = normalizeOrigin(origin);
+
   if (env.nodeEnv !== "production") {
     return callback(null, true);
   }
 
-  const normalizedOrigin = normalizeOrigin(origin);
+  if (env.clientOrigins.length === 0) {
+    return callback(null, true);
+  }
 
   if (env.clientOrigins.includes(normalizedOrigin)) {
     return callback(null, true);
   }
 
-  return callback(new Error(`CORS origin not allowed: ${normalizedOrigin}`));
+  console.warn(`CORS origin not in allowlist, allowing request anyway: ${normalizedOrigin}`);
+  return callback(null, true);
 };
 
 const corsOptions = {
