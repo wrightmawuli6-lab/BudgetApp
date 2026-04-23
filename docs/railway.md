@@ -25,6 +25,8 @@ VITE_ADMIN_API_BASE_URL=https://budgetapp-production-5add.up.railway.app/admin/a
 - Install command: `npm install`
 - Start command: `npm start`
 
+`npm start` now runs the database schema init first, then starts the API server.
+
 Required variables:
 
 ```env
@@ -50,14 +52,15 @@ ADMIN_SUPER_NAME=Platform Super Admin
 
 ## Database
 
-Railway Postgres provides `DATABASE_URL`, but you still need to apply `backend/db/schema.sql`.
+Railway Postgres provides `DATABASE_URL`. The backend start command now applies `backend/db/schema.sql` automatically on boot.
 
 Minimum bootstrap flow:
 
 1. Create the backend service.
 2. Attach a Railway Postgres database.
-3. Run the schema against that database.
-4. Run `npm run seed:admin` with the backend service variables loaded if you want the admin portal available immediately.
+3. Set backend variables, especially `DATABASE_URL`.
+4. Deploy the backend service. The schema will be applied automatically.
+5. Run `npm run seed:admin` with the backend service variables loaded if you want the admin portal available immediately.
 
 ## Notes
 

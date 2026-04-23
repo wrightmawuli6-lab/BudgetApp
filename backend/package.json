@@ -8,7 +8,8 @@
   },
   "scripts": {
     "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
+    "migrate": "node src/scripts/applySchema.js",
+    "start": "npm run migrate && node src/server.js",
     "lint": "eslint .",
     "seed:admin": "node src/scripts/seedAdmin.js"
   },
