@@ -1,0 +1,88 @@
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+
+import { env } from "./config/env.js";
+import { notFoundMiddleware, errorMiddleware } from "./middlewares/errorMiddleware.js";
+import { authRoutes } from "./routes/authRoutes.js";
+import { profileRoutes } from "./routes/profileRoutes.js";
+import { incomeRoutes } from "./routes/incomeRoutes.js";
+import { expenseRoutes } from "./routes/expenseRoutes.js";
+import { savingsGoalRoutes } from "./routes/savingsGoalRoutes.js";
+import { dashboardRoutes } from "./routes/dashboardRoutes.js";
+import { aiRoutes } from "./routes/aiRoutes.js";
+import { goalsRoutes } from "./routes/goalsRoutes.js";
+import { strategyRoutes } from "./routes/strategyRoutes.js";
+import { trendRoutes } from "./routes/trendRoutes.js";
+import { budgetRoutes } from "./routes/budgetRoutes.js";
+import { notificationRoutes } from "./routes/notificationRoutes.js";
+import { adminAuthRoutes } from "./routes/adminAuthRoutes.js";
+import { adminUsersRoutes } from "./routes/adminUsersRoutes.js";
+import { adminRolesRoutes } from "./routes/adminRolesRoutes.js";
+import { adminAuditRoutes } from "./routes/adminAuditRoutes.js";
+
+export const app = express();
+
+app.use(helmet());
+
+const normalizeOrigin = (origin) => origin?.trim().replace(/\/+$/, "") || "";
+
+const corsOriginHandler = (origin, callback) => {
+  if (!origin) {
+    return callback(null, true);
+  }
+
+  const normalizedOrigin = normalizeOrigin(origin);
+
+  if (env.nodeEnv !== "production") {
+    return callback(null, true);
+  }
+
+  if (env.clientOrigins.length === 0) {
+    return callback(null, true);
+  }
+
+  if (env.clientOrigins.includes(normalizedOrigin)) {
+    return callback(null, true);
+  }
+
+  console.warn(`CORS origin not in allowlist, allowing request anyway: ${normalizedOrigin}`);
+  return callback(null, true);
+};
+
+const corsOptions = {
+  origin: corsOriginHandler,
+  credentials: false,
+  methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+app.use(cors(corsOptions));
+app.options(/.*/, cors(corsOptions));
+app.use(express.json({ limit: "1mb" }));
+app.use(morgan(env.nodeEnv === "production" ? "combined" : "dev"));
+
+app.get("/health", (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.use("/api/auth", authRoutes);
+app.use("/api/profile", profileRoutes);
+app.use("/api/income", incomeRoutes);
+app.use("/api/expenses", expenseRoutes);
+app.use("/api/savings-goal", savingsGoalRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/ai", aiRoutes);
+app.use("/api/goals", goalsRoutes);
+app.use("/api/strategies", strategyRoutes);
+app.use("/api/trends", trendRoutes);
+app.use("/api/budget", budgetRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/admin/api/auth", adminAuthRoutes);
+app.use("/admin/api/users", adminUsersRoutes);
+app.use("/admin/api/roles", adminRolesRoutes);
+app.use("/admin/api/audit-logs", adminAuditRoutes);
+
+app.use(notFoundMiddleware);
+app.use(errorMiddleware);
