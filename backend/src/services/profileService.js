@@ -4,7 +4,7 @@ import { ApiError } from "../utils/ApiError.js";
 export async function getProfile(userId) {
   const result = await query(
     `SELECT u.id, u.name, u.email, u.created_at,
-            p.monthly_income, p.student_type, p.debt_amount
+            p.monthly_income, p.student_type, p.saving_goal_intensity, p.debt_amount
        FROM users u
        JOIN profiles p ON p.user_id = u.id
       WHERE u.id = $1`,
@@ -22,6 +22,7 @@ export async function getProfile(userId) {
     email: profile.email,
     monthly_income: Number(profile.monthly_income),
     student_type: profile.student_type,
+    saving_goal_intensity: profile.saving_goal_intensity,
     debt_amount: Number(profile.debt_amount),
     created_at: profile.created_at
   };
@@ -64,6 +65,10 @@ export async function updateProfile(userId, payload) {
       profileUpdates.push(`student_type = $${j++}`);
       profileValues.push(payload.studentType);
     }
+    if (payload.savingGoalIntensity !== undefined) {
+      profileUpdates.push(`saving_goal_intensity = $${j++}`);
+      profileValues.push(payload.savingGoalIntensity);
+    }
     if (payload.debtAmount !== undefined) {
       profileUpdates.push(`debt_amount = $${j++}`);
       profileValues.push(payload.debtAmount);
@@ -77,7 +82,7 @@ export async function updateProfile(userId, payload) {
 
     const profileResult = await client.query(
       `SELECT u.id, u.name, u.email, u.created_at,
-              p.monthly_income, p.student_type, p.debt_amount
+              p.monthly_income, p.student_type, p.saving_goal_intensity, p.debt_amount
          FROM users u
          JOIN profiles p ON p.user_id = u.id
         WHERE u.id = $1`,
@@ -92,6 +97,7 @@ export async function updateProfile(userId, payload) {
       email: profile.email,
       monthly_income: Number(profile.monthly_income),
       student_type: profile.student_type,
+      saving_goal_intensity: profile.saving_goal_intensity,
       debt_amount: Number(profile.debt_amount),
       created_at: profile.created_at
     };

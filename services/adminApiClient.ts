@@ -1,14 +1,12 @@
 import axios from "axios";
+import { buildApiRoot, resolveApiBaseUrl, stripApiSuffix } from "./apiConfig";
 
-const userApiBase = import.meta.env.VITE_API_BASE_URL;
-if (!userApiBase) {
-  throw new Error("VITE_API_BASE_URL is required. Set it in your frontend environment.");
-}
-
-const adminApiBase = import.meta.env.VITE_ADMIN_API_BASE_URL || `${userApiBase.replace(/\/api\/?$/, "")}/admin/api`;
+const userApiBase = resolveApiBaseUrl(import.meta.env.VITE_API_BASE_URL);
+const adminApiBase =
+  import.meta.env.VITE_ADMIN_API_BASE_URL || `${stripApiSuffix(userApiBase)}/admin/api`;
 
 export const adminApiClient = axios.create({
-  baseURL: adminApiBase,
+  baseURL: adminApiBase.endsWith("/api") ? adminApiBase : buildApiRoot(adminApiBase),
   timeout: 15000,
   headers: {
     "Content-Type": "application/json"

@@ -28,10 +28,14 @@ CREATE TABLE IF NOT EXISTS profiles (
   user_id UUID UNIQUE NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   monthly_income NUMERIC(12, 2) NOT NULL DEFAULT 0,
   student_type TEXT NOT NULL DEFAULT 'full-time',
+  saving_goal_intensity TEXT NOT NULL DEFAULT 'medium',
   debt_amount NUMERIC(12, 2) NOT NULL DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+ALTER TABLE profiles
+ADD COLUMN IF NOT EXISTS saving_goal_intensity TEXT NOT NULL DEFAULT 'medium';
 
 CREATE TABLE IF NOT EXISTS incomes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -136,6 +140,15 @@ CREATE TABLE IF NOT EXISTS notification_events (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS user_daily_activity (
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  activity_date DATE NOT NULL,
+  activity_count INT NOT NULL DEFAULT 1 CHECK (activity_count >= 1),
+  first_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  last_seen_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (user_id, activity_date)
+);
+
 CREATE INDEX IF NOT EXISTS idx_incomes_user_date ON incomes(user_id, income_date);
 CREATE TABLE IF NOT EXISTS budget_strategies (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -160,6 +173,7 @@ CREATE INDEX IF NOT EXISTS idx_coaching_plan_selections_user_selected ON coachin
 CREATE INDEX IF NOT EXISTS idx_spending_trends_user_created ON spending_trends(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_simulations_user_created ON simulations(user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_notifications_user_created ON notification_events(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_user_daily_activity_user_date ON user_daily_activity(user_id, activity_date DESC);
 
 CREATE TABLE IF NOT EXISTS admin_users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

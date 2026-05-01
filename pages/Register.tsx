@@ -1,19 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Wallet, Mail, Lock, User } from 'lucide-react';
-import { getSession, register } from '../auth';
+import { Wallet, Mail, Lock, Moon, Sun, User } from 'lucide-react';
+import { register } from '../auth';
+
+const THEME_KEY = 'budgeting_theme';
 
 export default function Register() {
   const navigate = useNavigate();
-  useEffect(() => {
-    if (getSession()) navigate('/', { replace: true });
-  }, [navigate]);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => (
+    localStorage.getItem(THEME_KEY) === 'light' ? 'light' : 'dark'
+  ));
+  const isLight = theme === 'light';
+
+  const toggleTheme = () => {
+    setTheme((current) => {
+      const next = current === 'dark' ? 'light' : 'dark';
+      localStorage.setItem(THEME_KEY, next);
+      return next;
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,70 +37,87 @@ export default function Register() {
     const result = await register(name, email, password);
     setLoading(false);
     if (result.ok) {
-      navigate('/', { replace: true });
+      navigate('/app', { replace: true });
     } else {
       setError(result.error ?? 'Something went wrong.');
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md">
+    <div className={`min-h-screen px-5 py-8 transition-colors sm:px-6 ${isLight ? 'bg-[#f6f7fb] text-gray-950' : 'bg-[#070708] text-white'}`}>
+      <div className={`pointer-events-none fixed inset-x-0 top-0 h-80 ${isLight ? 'bg-[radial-gradient(circle_at_50%_0%,rgba(139,61,255,0.18),transparent_58%)]' : 'bg-[radial-gradient(circle_at_50%_0%,rgba(139,61,255,0.36),transparent_58%)]'}`} />
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className={`fixed right-5 top-5 z-20 grid h-12 w-12 place-items-center rounded-full border shadow-lg transition ${
+          isLight ? 'border-gray-200 bg-white text-gray-800 shadow-gray-200/70 hover:bg-gray-50' : 'border-white/10 bg-white/8 text-white/70 shadow-black/30 hover:bg-white/12 hover:text-white'
+        }`}
+        title={isLight ? 'Switch to dark mode' : 'Switch to light mode'}
+      >
+        {isLight ? <Moon size={21} /> : <Sun size={21} />}
+      </button>
+      <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] w-full max-w-6xl items-center justify-center lg:grid lg:grid-cols-[1fr_440px] lg:gap-14">
+        <section className="hidden lg:block">
+          <p className={`mb-4 text-sm font-black uppercase tracking-[0.25em] ${isLight ? 'text-gray-500' : 'text-white/35'}`}>Start with BudgeApp</p>
+          <h1 className="max-w-xl text-6xl font-[900] leading-[0.96] tracking-tight">Build a budget that fits your screen and your month.</h1>
+          <p className={`mt-6 max-w-md text-base font-semibold leading-7 ${isLight ? 'text-gray-600' : 'text-white/50'}`}>Create your account, then track spending, savings goals, and strategy history in the redesigned dashboard.</p>
+        </section>
+      <div className="w-full max-w-lg">
         <div className="text-center mb-10">
-          <div className="inline-flex p-4 bg-indigo-600 text-white rounded-[1.5rem] shadow-xl shadow-indigo-200 mb-6">
+          <div className="inline-flex p-4 bg-gradient-to-br from-[#7c2dff] to-[#ca32ff] text-white rounded-[1.5rem] shadow-xl shadow-violet-950/40 mb-6">
             <Wallet size={40} />
           </div>
-          <h1 className="text-3xl font-[900] text-slate-900 tracking-tight">Budgeting</h1>
-          <p className="text-slate-500 font-bold text-sm mt-2">Create your account</p>
+          <h1 className="text-4xl font-[900] tracking-tight">BudgeApp</h1>
+          <p className={`mt-2 text-base font-bold ${isLight ? 'text-gray-500' : 'text-white/45'}`}>Create your account</p>
         </div>
 
-        <div className="bg-white/80 backdrop-blur-md rounded-[2.5rem] p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/40">
+        <div className={`rounded-[2.5rem] border p-7 shadow-[0_28px_70px_rgba(0,0,0,0.22)] sm:p-10 ${isLight ? 'border-gray-200 bg-white' : 'border-white/10 bg-[#171719]'}`}>
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
-              <div className="p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-700 text-sm font-bold">
+              <div className="p-4 rounded-2xl bg-rose-500/15 border border-rose-400/20 text-rose-200 text-sm font-bold">
                 {error}
               </div>
             )}
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+              <label className="block text-[10px] font-black text-white/35 uppercase tracking-[0.2em] mb-2 px-1">
                 Name
               </label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/35" size={20} />
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   autoComplete="name"
                   required
-                  className="w-full pl-12 pr-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-600 focus:bg-white font-bold outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/25 py-4 pl-12 pr-5 font-bold text-white outline-none placeholder:text-white/25 focus:border-violet-400"
                   placeholder="Your name"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+              <label className="block text-[10px] font-black text-white/35 uppercase tracking-[0.2em] mb-2 px-1">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/35" size={20} />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
                   required
-                  className="w-full pl-12 pr-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-600 focus:bg-white font-bold outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/25 py-4 pl-12 pr-5 font-bold text-white outline-none placeholder:text-white/25 focus:border-violet-400"
                   placeholder="you@example.com"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+              <label className="block text-[10px] font-black text-white/35 uppercase tracking-[0.2em] mb-2 px-1">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/35" size={20} />
                 <input
                   type="password"
                   value={password}
@@ -97,24 +125,24 @@ export default function Register() {
                   autoComplete="new-password"
                   required
                   minLength={8}
-                  className="w-full pl-12 pr-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-600 focus:bg-white font-bold outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/25 py-4 pl-12 pr-5 font-bold text-white outline-none placeholder:text-white/25 focus:border-violet-400"
                   placeholder="At least 8 characters"
                 />
               </div>
             </div>
             <div>
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">
+              <label className="block text-[10px] font-black text-white/35 uppercase tracking-[0.2em] mb-2 px-1">
                 Confirm password
               </label>
               <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={20} />
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/35" size={20} />
                 <input
                   type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   autoComplete="new-password"
                   required
-                  className="w-full pl-12 pr-5 py-4 bg-slate-50 border-2 border-slate-100 rounded-2xl focus:border-indigo-600 focus:bg-white font-bold outline-none"
+                  className="w-full rounded-2xl border border-white/10 bg-black/25 py-4 pl-12 pr-5 font-bold text-white outline-none placeholder:text-white/25 focus:border-violet-400"
                   placeholder="••••••••"
                 />
               </div>
@@ -122,19 +150,20 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-5 bg-indigo-600 text-white font-black text-lg rounded-[2rem] shadow-[0_20px_40px_rgba(79,70,229,0.3)] hover:bg-indigo-700 disabled:opacity-60 transition-all active:scale-[0.98]"
+              className="min-h-14 w-full rounded-[2rem] bg-gradient-to-r from-[#7c2dff] to-[#ca32ff] px-5 py-4 text-lg font-black text-white shadow-[0_20px_40px_rgba(124,45,255,0.25)] transition-all hover:brightness-110 disabled:opacity-60 active:scale-[0.98]"
             >
               {loading ? 'Creating account…' : 'Create account'}
             </button>
           </form>
 
-          <p className="text-center text-slate-500 font-bold text-sm mt-6">
+          <p className="text-center text-white/45 font-bold text-sm mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="text-indigo-600 hover:underline">
+            <Link to="/login" className="text-violet-300 hover:underline">
               Sign in
             </Link>
           </p>
         </div>
+      </div>
       </div>
     </div>
   );

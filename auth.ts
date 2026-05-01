@@ -2,6 +2,8 @@ import { apiClient } from "./services/apiClient";
 
 const SESSION_KEY = "budgeting_session";
 const TOKEN_KEY = "budgeting_auth_token";
+const NEW_USER_KYC_KEY = "budgeting_new_user_kyc";
+const LOGIN_NOTICE_KEY = "budgeting_login_notice";
 
 export interface Session {
   id?: string;
@@ -32,6 +34,20 @@ export function logout(): void {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+export function needsNewUserKyc(): boolean {
+  return localStorage.getItem(NEW_USER_KYC_KEY) === "true";
+}
+
+export function completeNewUserKyc(): void {
+  localStorage.removeItem(NEW_USER_KYC_KEY);
+}
+
+export function consumeLoginNotice(): boolean {
+  const hasNotice = sessionStorage.getItem(LOGIN_NOTICE_KEY) === "true";
+  sessionStorage.removeItem(LOGIN_NOTICE_KEY);
+  return hasNotice;
+}
+
 export async function register(
   name: string,
   email: string,
@@ -59,6 +75,8 @@ export async function register(
       },
       data.token
     );
+    localStorage.setItem(NEW_USER_KYC_KEY, "true");
+    sessionStorage.setItem(LOGIN_NOTICE_KEY, "true");
 
     return { ok: true };
   } catch (error: any) {
@@ -69,7 +87,7 @@ export async function register(
         : undefined;
     return {
       ok: false,
-      error: detailMessage || error?.response?.data?.error?.message || "Registration failed"
+      error: detailMessage || error?.userMessage || error?.response?.data?.error?.message || "Registration failed"
     };
   }
 }
@@ -94,6 +112,7 @@ export async function login(
       },
       data.token
     );
+    sessionStorage.setItem(LOGIN_NOTICE_KEY, "true");
 
     return { ok: true };
   } catch (error: any) {
@@ -104,7 +123,7 @@ export async function login(
         : undefined;
     return {
       ok: false,
-      error: detailMessage || error?.response?.data?.error?.message || "Login failed"
+      error: detailMessage || error?.userMessage || error?.response?.data?.error?.message || "Login failed"
     };
   }
 }
